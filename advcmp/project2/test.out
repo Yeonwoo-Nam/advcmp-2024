@@ -22,17 +22,23 @@ nonempty CFGWorklist
 visit phi
 visit phi
 visit   %z.0 = phi i32 [ 1, %if.then ], [ %add1, %entry ] new : { TOP }, old : { TOP }
-visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { TOP }, old : { TOP }
-visit   ret i32 0 new : { TOP }, old : { TOP }
+visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { TOP }
+visit special
+visit   ret i32 0 new : { BOTTOM }, old : { TOP }
+visit special
 visit phi
 visit phi
 visit   %z.0 = phi i32 [ 1, %if.then ], [ %add1, %entry ] new : { TOP }, old : { TOP }
-visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { TOP }, old : { TOP }
-visit   ret i32 0 new : { TOP }, old : { TOP }
+visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { BOTTOM }
+visit   ret i32 0 new : { BOTTOM }, old : { BOTTOM }
 0 | 1
-add : 3
-add1 : 5
+ : 94385257345808
 cmp : 0
-%add : { 3 }
-%add1 : { 5 }
+call : 94385257345808
+add1 : 5
+add : 3
+  ret i32 0 : { BOTTOM }
 %cmp : { 0 }
+%call : { BOTTOM }
+%add1 : { 5 }
+%add : { 3 }
