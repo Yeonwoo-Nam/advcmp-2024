@@ -1,44 +1,46 @@
-start with 1, 0
-each iteration
-nonempty CFGWorklist
   %add = add nsw i32 1, 2
 visit   %add = add nsw i32 1, 2 new : { 3 }, old : { TOP }
-visit special
+visit_special
   %add1 = add nsw i32 %add, 2
 visit   %add1 = add nsw i32 %add, 2 new : { 5 }, old : { TOP }
-visit special
+visit_special
 visit   %cmp = icmp slt i32 %add, 2 new : { 0 }, old : { TOP }
-visit special
-visit   br i1 %cmp, label %if.then, label %if.end new : { TOP }, old : { TOP }
+visit_special
   %add = add nsw i32 1, 2
 visit   %add = add nsw i32 1, 2 new : { 3 }, old : { 3 }
   %add1 = add nsw i32 %add, 2
 visit   %add1 = add nsw i32 %add, 2 new : { 5 }, old : { 5 }
 visit   %cmp = icmp slt i32 %add, 2 new : { 0 }, old : { 0 }
-visit   br i1 %cmp, label %if.then, label %if.end new : { TOP }, old : { TOP }
-0 | 1
-each iteration
-nonempty CFGWorklist
-visit phi
-visit phi
-visit   %z.0 = phi i32 [ 1, %if.then ], [ %add1, %entry ] new : { TOP }, old : { TOP }
+visit_phi : { TOP } 
+visit_phi : { TOP } 
 visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { TOP }
-visit special
+visit_special
 visit   ret i32 0 new : { BOTTOM }, old : { TOP }
-visit special
-visit phi
-visit phi
-visit   %z.0 = phi i32 [ 1, %if.then ], [ %add1, %entry ] new : { TOP }, old : { TOP }
+visit_special
+visit_phi : { TOP } 
+visit_phi : { TOP } 
 visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { BOTTOM }
 visit   ret i32 0 new : { BOTTOM }, old : { BOTTOM }
-0 | 1
- : 94385257345808
-cmp : 0
-call : 94385257345808
-add1 : 5
+  %add1 = add nsw i32 %add, 2
+visit   %add1 = add nsw i32 %add, 2 new : { 5 }, old : { 5 }
+visit   %cmp = icmp slt i32 %add, 2 new : { 0 }, old : { 0 }
+visit_phi : { TOP } 
+visit_phi : { TOP } 
+visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { BOTTOM }
+visit   ret i32 0 new : { BOTTOM }, old : { BOTTOM }
+visit_phi : { TOP } 
+visit_phi : { TOP } 
+visit   %call = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef 1, i32 noundef %add, i32 noundef %z.0) new : { BOTTOM }, old : { BOTTOM }
+visit   ret i32 0 new : { BOTTOM }, old : { BOTTOM }
+visit   ret i32 0 new : { BOTTOM }, old : { BOTTOM }
+----------------------------
+call : 94485443920672
 add : 3
-  ret i32 0 : { BOTTOM }
-%cmp : { 0 }
+cmp : 0
+ : 94485443920672
+add1 : 5
 %call : { BOTTOM }
-%add1 : { 5 }
 %add : { 3 }
+%cmp : { 0 }
+  ret i32 0 : { BOTTOM }
+%add1 : { 5 }

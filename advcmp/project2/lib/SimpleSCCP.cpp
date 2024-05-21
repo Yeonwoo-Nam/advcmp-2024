@@ -83,7 +83,6 @@ SimpleSCCPAnalysis::InstructionVisitor::visitPHINode(const PHINode &I) {
   //******************************** TODO 1 ********************************
   // for (int i = 0, n = I.getNumIncomingValues(); i < n; ++i) {
   // TODO
-  errs() << "visit phi\n";
   for (auto e = ThePass.ExecutableEdges.begin();
        e != ThePass.ExecutableEdges.end(); ++e) {
     auto edge = *e;
@@ -91,6 +90,7 @@ SimpleSCCPAnalysis::InstructionVisitor::visitPHINode(const PHINode &I) {
     if (I.getBasicBlockIndex(BB) >= 0)
       NewValue = NewValue.meet(I.getIncomingValueForBlock(BB));
   }
+  errs() << "visit_phi : " << NewValue << " \n";
   // }
   //****************************** TODO 1 END ******************************
   return NewValue;
@@ -266,13 +266,13 @@ void SimpleSCCPAnalysis::analyze(Function &F) {
 
   //* TODO 2 - Algorithm 1 : SCCP
   //******************************* TODO 2 *******************************
-  errs() << "start with " << CFGWorkset.size() << ", " << SSAWorkset.size()
-         << "\n";
+  // errs() << "start with " << CFGWorkset.size() << ", " << SSAWorkset.size()
+  //        << "\n";
   while (!CFGWorkset.empty() || !SSAWorkset.empty()) {
     // TODO
-    errs() << "each iteration\n";
+    // errs() << "each iteration\n";
     if (!CFGWorkset.empty()) {
-      errs() << "nonempty CFGWorklist\n";
+      // errs() << "nonempty CFGWorklist\n";
       const CFGEdge &x = *CFGWorkset.begin();
       auto BB = x.To;
       TheVisitor.ThePass.ExecutableEdges.insert(x);
@@ -283,15 +283,15 @@ void SimpleSCCPAnalysis::analyze(Function &F) {
           visit(I);
       }
       auto succ = BB->getUniqueSuccessor();
-      errs() << (succ != nullptr) << " | " << (!isExecutableBlock(*succ))
-             << "\n";
+      // errs() << (succ != nullptr) << " | " << (!isExecutableBlock(*succ))
+      //        << "\n";
       if ((succ != nullptr) && (!isExecutableBlock(*succ))) {
-        errs() << "append in CFGWorklist\n";
+        // errs() << "append in CFGWorklist\n";
         CFGWorkset.insert(CFGEdge{BB, succ});
       }
       CFGWorkset.erase(x);
     } else {
-      errs() << "nonempty SSAWorklist\n";
+      // errs() << "nonempty SSAWorklist\n";
       const llvm::Instruction *x = *SSAWorkset.begin();
       switch (x->getOpcode()) {
       case Instruction::PHI:
@@ -304,6 +304,7 @@ void SimpleSCCPAnalysis::analyze(Function &F) {
       SSAWorkset.erase(x);
     }
   }
+  errs() << "----------------------------\n";
   for (auto iter = DataflowFacts.begin(); iter != DataflowFacts.end(); ++iter) {
     auto v = (iter->getFirst())->getName();
     auto c = (iter->getSecond()).value();
@@ -349,14 +350,18 @@ void SimpleSCCPAnalysis::visit(const Instruction &I) {
     NewLatticeValue = TheVisitor.visitInstruction(I);
   }
   auto vI = &const_cast<Instruction &>(I);
-  if (!NewLatticeValue.isTop())
-    TheVisitor.ThePass.DataflowFacts.insert(
-        std::make_pair(vI, NewLatticeValue));
-  errs() << "visit " << I << " new : " << NewLatticeValue
-         << ", old : " << OldLatticeValue << "\n";
+  if (!NewLatticeValue.isTop()) {
+    TheVisitor.ThePass.DataflowFacts.try_emplace(vI,NewLatticeValue);
+    // TheVisitor.ThePass.DataflowFacts.insert(
+    //     std::make_pair(vI, NewLatticeValue));
+    errs() << "visit " << I << " new : " << NewLatticeValue
+           << ", old : " << OldLatticeValue << "\n";
+  }
   if (NewLatticeValue != OldLatticeValue) {
     // TODO
-    errs() << "visit special\n";
+    // it's just next instruction, not outgoing SSA edge....
+    if (I.getNextNode() != nullptr) SSAWorkset.insert(I.getNextNode());
+    errs() << "visit_special\n";
   }
   //****************************** TODO 3 END ******************************
 }
