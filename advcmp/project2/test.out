@@ -1,0 +1,6 @@
+%call : { BOTTOM }
+%add1 : { 5 }
+%z.0 : { 5 }
+%add : { 3 }
+%cmp : { 0 }
+  ret i32 0 : { BOTTOM }

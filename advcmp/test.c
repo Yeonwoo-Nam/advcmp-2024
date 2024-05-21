@@ -1,20 +1,16 @@
 #include <stdio.h>
 
 int main() {
-    const int x = 12;
-    const int y = 20;
+  int x = 1;
+  int y = x + 2; // 3
+  int z = y + 2; // 5
 
-    int i, j;
+  if (y < 2) { // false
+    z = 1;
+  }
 
-    for (j = 0; j < y; ++j) {
-        for (i = 0; i < x; ++i) {
-            if (i > j)
-                continue;
-            
-            printf("*");
-        }
-        printf("\n");
-    }
+  // x = 1, y = 3, z = 5
+  printf("%d %d %d\n", x, y, z);
 
-    return 0;
+  return 0;
 }
