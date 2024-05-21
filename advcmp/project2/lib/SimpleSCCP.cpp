@@ -86,11 +86,15 @@ SimpleSCCPAnalysis::InstructionVisitor::visitPHINode(const PHINode &I) {
   for (auto e = ThePass.ExecutableEdges.begin();
        e != ThePass.ExecutableEdges.end(); ++e) {
     auto edge = *e;
+    // errs() << "edge for visit_phi : " << edge << "\n";
     auto BB = edge.From;
-    if (I.getBasicBlockIndex(BB) >= 0)
-      NewValue = NewValue.meet(I.getIncomingValueForBlock(BB));
+    if (I.getBasicBlockIndex(BB) >= 0) {
+      auto Incoming = ThePass.DataflowFacts.lookup(I.getIncomingValueForBlock(BB));
+      // errs() << "meeting -- " << NewValue << " | " << Incoming << "\n";
+      NewValue = NewValue.meet(Incoming);
+    }
   }
-  errs() << "visit_phi : " << NewValue << " \n";
+  // errs() << "visit_phi : " << NewValue << " \n";
   // }
   //****************************** TODO 1 END ******************************
   return NewValue;
@@ -275,6 +279,7 @@ void SimpleSCCPAnalysis::analyze(Function &F) {
       // errs() << "nonempty CFGWorklist\n";
       const CFGEdge &x = *CFGWorkset.begin();
       auto BB = x.To;
+      // errs() << "new excutable : " << x << " \n";
       TheVisitor.ThePass.ExecutableEdges.insert(x);
       for (const Instruction &I : *BB)
         visit(I);
@@ -304,12 +309,7 @@ void SimpleSCCPAnalysis::analyze(Function &F) {
       SSAWorkset.erase(x);
     }
   }
-  errs() << "----------------------------\n";
-  for (auto iter = DataflowFacts.begin(); iter != DataflowFacts.end(); ++iter) {
-    auto v = (iter->getFirst())->getName();
-    auto c = (iter->getSecond()).value();
-    errs() << v << " : " << c << "\n";
-  }
+  // errs() << "----------------------------\n";
   //***************************** TODO 2 END *****************************
 }
 
@@ -342,7 +342,7 @@ void SimpleSCCPAnalysis::visit(const Instruction &I) {
         TheVisitor.visitICmpInst(*static_cast<const ICmpInst *>(&I));
     break;
   case Instruction::BinaryOpsBegin:
-    errs() << I << "\n";
+    // errs() << I << "\n";
     NewLatticeValue = TheVisitor.visitBinaryOperator(
         *static_cast<const BinaryOperator *>(&I));
     break;
@@ -354,14 +354,14 @@ void SimpleSCCPAnalysis::visit(const Instruction &I) {
     TheVisitor.ThePass.DataflowFacts.try_emplace(vI,NewLatticeValue);
     // TheVisitor.ThePass.DataflowFacts.insert(
     //     std::make_pair(vI, NewLatticeValue));
-    errs() << "visit " << I << " new : " << NewLatticeValue
-           << ", old : " << OldLatticeValue << "\n";
+    // errs() << "visit " << I << " new : " << NewLatticeValue
+    //        << ", old : " << OldLatticeValue << "\n";
   }
   if (NewLatticeValue != OldLatticeValue) {
     // TODO
     // it's just next instruction, not outgoing SSA edge....
     if (I.getNextNode() != nullptr) SSAWorkset.insert(I.getNextNode());
-    errs() << "visit_special\n";
+    // errs() << "visit_special\n";
   }
   //****************************** TODO 3 END ******************************
 }
